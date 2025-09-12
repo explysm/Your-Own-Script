@@ -13,7 +13,7 @@ This document provides a quick reference for the YOScript language syntax and co
 | :--- | :--- | :--- |
 | **`print`** | Prints a literal value or the value of a variable to the console. | **Syntax:**<br>`print "<value>"`<br>`print <variable>`<br><br>**Example:**<br>`vs message = "Hello"`<br>`print "Hello, World!"`<br>`print message` |
 | **`help`** | Displays this help message. | **Syntax:**<br>`help` |
-| **`clear`** | Clears the console. | **Syntac:**<br>`clear` |
+| **`clear`** | Clears the console. | **Syntax:**<br>`clear` |
 ---
 
 ### Variable Declaration
