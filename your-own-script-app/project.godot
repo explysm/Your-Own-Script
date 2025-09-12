@@ -17,6 +17,11 @@ config/features=PackedStringArray("4.4", "GL Compatibility")
 boot_splash/image="uid://bq1a0qaqx4d1i"
 config/icon="uid://bq1a0qaqx4d1i"
 
+[display]
+
+window/stretch/mode="canvas_items"
+window/stretch/aspect="ignore"
+
 [gui]
 
 theme/custom_font="uid://bhkagvud1gyy2"

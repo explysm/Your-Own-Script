@@ -2,7 +2,7 @@ extends Control
 
 # ---------------------------
 # Keywords for syntax highlighting
-const KEYWORDS = ["print", "vs", "vi", "loop:", "input:", "help", "if:", "vb", "==", "<", ">", "!=", "loop", "clear", "random", "len"]
+const KEYWORDS = ["print", "vs", "vi", "loop:", "input:", "help", "if:", "vb", "==", "<", ">", "!=", "loop", "clear", "random", "len", "timer:"]
 const MAX_LOOP_ITERATIONS = 100000
 
 # Node references
@@ -43,7 +43,6 @@ func _ready():
 	browse_button.pressed.connect(_on_browse_pressed)
 
 	editor.text_changed.connect(_on_editor_text_changed)
-	input_line.text_submitted.connect(_on_input_received)
 	
 	editor.set_draw_spaces(true)
 	update_highlighter()
@@ -68,6 +67,7 @@ func update_highlighter():
 	highlighter_theme.add_keyword_color("clear", Color.WHITE)
 	highlighter_theme.add_keyword_color("random", Color.WHITE)
 	highlighter_theme.add_keyword_color("len", Color.WHITE)
+	highlighter_theme.add_keyword_color("timer:", Color.ORANGE)
 	highlighter_theme.add_color_region("#", "", Color.DARK_GRAY)
 	
 	editor.syntax_highlighter = highlighter_theme
@@ -190,7 +190,7 @@ func find_dotnet_path_from_path_env():
 
 # ---------------------------
 # Program Execution (Stack-based)
-func _on_run_pressed():
+func _on_run_pressed() -> void:
 	console.clear()
 	variables.clear()
 	loop_iterations.clear()
@@ -199,9 +199,9 @@ func _on_run_pressed():
 	var lines = editor.text.split("\n")
 	execution_stack.append({"lines": lines, "index": 0})
 	
-	execute_program()
+	await execute_program()
 
-func execute_program():
+func execute_program() -> void:
 	while execution_stack.size() > 0:
 		var frame = execution_stack.back()
 		var lines = frame.lines
@@ -237,7 +237,6 @@ func execute_program():
 				frame.index += body_lines.size() + 1
 				continue
 		
-		# Handle the entire if/else if/else chain as a single unit
 		elif stripped_line.begins_with("if:"):
 			var condition = stripped_line.replace("if:", "").strip_edges()
 			var block_lines = get_block(lines, i)
@@ -249,12 +248,10 @@ func execute_program():
 				
 			var current_index = i + block_lines.size() + 1
 			
-			# Search for and skip any connected 'else if' or 'else' blocks
 			while current_index < lines.size():
 				var next_line = lines[current_index]
 				var next_stripped_line = next_line.strip_edges()
 				
-				# If we find a new top-level block, the chain is over
 				if not (next_stripped_line.begins_with("else") or next_stripped_line.begins_with("else if:")):
 					break
 				
@@ -271,44 +268,54 @@ func execute_program():
 				
 				current_index += next_block_lines.size() + 1
 			
-			# Advance the parent frame's index to skip the entire chain
 			frame.index = current_index
 			continue
 
 		elif stripped_line.begins_with("input:"):
-			var var_name = stripped_line.replace("input:", "").strip_edges()
-			if var_name:
-				log_output(">>")
-				input_line.show()
-				awaiting_input_for_variable = var_name
-				frame.index += 1
-				return
+			await get_input_from_user(stripped_line)
+			frame.index += 1
+			continue
+
+		elif stripped_line.begins_with("timer:"):
+			var time_str = stripped_line.replace("timer:", "").strip_edges()
+			var time_msec = eval_expression(time_str)
+			if typeof(time_msec) == TYPE_INT and time_msec > 0:
+				await get_tree().create_timer(float(time_msec) / 1000.0).timeout
+			else:
+				log_error("Invalid time for 'timer:'. Must be a positive integer.")
+			frame.index += 1
+			continue
 		
 		else:
 			parse_line(stripped_line)
 			frame.index += 1
 
-func _on_input_received(text: String):
-	if awaiting_input_for_variable:
-		if variables.has(awaiting_input_for_variable):
-			var var_type = variables[awaiting_input_for_variable].get("type")
+func get_input_from_user(line: String) -> void:
+	var var_name = line.replace("input:", "").strip_edges()
+	if var_name:
+		log_output(">>")
+		input_line.show()
+		var input_text = await input_line.text_submitted
+		
+		if variables.has(var_name):
+			var var_type = variables[var_name].get("type")
 			if var_type == "int":
-				if text.is_valid_int():
-					variables[awaiting_input_for_variable].value = int(text)
+				if input_text.is_valid_int():
+					variables[var_name].value = int(input_text)
 				else:
 					log_error("Input is not a valid integer. Defaulting to 0.")
-					variables[awaiting_input_for_variable].value = 0
+					variables[var_name].value = 0
 			elif var_type == "bool":
-				variables[awaiting_input_for_variable].value = (text.to_lower() == "true")
+				variables[var_name].value = (input_text.to_lower() == "true")
 			else:
-				variables[awaiting_input_for_variable].value = text
+				variables[var_name].value = input_text
 		else:
-			variables[awaiting_input_for_variable] = {"type": "string", "value": text}
+			variables[var_name] = {"type": "string", "value": input_text}
 		
 		input_line.hide()
 		input_line.clear()
-		awaiting_input_for_variable = ""
-		execute_program()
+	else:
+		log_error("Input target variable not declared: " + var_name)
 
 # ---------------------------
 # Parse a single line containing multiple statements
@@ -514,6 +521,7 @@ func show_help():
 	log_output("clear                : Clears the console.")
 	log_output("random <var> <min> <max> : Generates a random integer and stores it in <var>.")
 	log_output("len <var>             : Prints the length of a string variable.")
+	log_output("timer: <msec>         : Pauses execution for a specified number of milliseconds.")
 	log_output("help                 : Displays this help message.")
 	log_output("---")
 
