@@ -2,7 +2,7 @@ extends Control
 
 # ---------------------------
 # Keywords for syntax highlighting
-const KEYWORDS = ["print", "vs", "vi", "loop:", "input:", "help", "if:", "vb", "==", "<", ">", "!=", "loop"]
+const KEYWORDS = ["print", "vs", "vi", "loop:", "input:", "help", "if:", "vb", "==", "<", ">", "!=", "loop", "clear", "random", "len"]
 const MAX_LOOP_ITERATIONS = 100000
 
 # Node references
@@ -37,6 +37,7 @@ func _ready():
 	
 	load_file.pressed.connect(_on_load_pressed)
 	save_file.pressed.connect(_on_save_pressed)
+	copy_button.pressed.connect(_on_copy_pressed)
 	build_button.pressed.connect(_on_build_pressed)
 	file_dialog.file_selected.connect(_on_file_selected)
 	browse_button.pressed.connect(_on_browse_pressed)
@@ -64,6 +65,9 @@ func update_highlighter():
 	highlighter_theme.add_keyword_color("!=", Color.AQUA)
 	highlighter_theme.add_keyword_color("<", Color.AQUA)
 	highlighter_theme.add_keyword_color(">", Color.AQUA)
+	highlighter_theme.add_keyword_color("clear", Color.WHITE)
+	highlighter_theme.add_keyword_color("random", Color.WHITE)
+	highlighter_theme.add_keyword_color("len", Color.WHITE)
 	highlighter_theme.add_color_region("#", "", Color.DARK_GRAY)
 	
 	editor.syntax_highlighter = highlighter_theme
@@ -210,7 +214,6 @@ func execute_program():
 		var line = lines[i]
 		var stripped_line = line.strip_edges()
 		
-		# Skip blank lines and comments
 		if stripped_line.is_empty() or stripped_line.begins_with("#"):
 			frame.index += 1
 			continue
@@ -220,34 +223,58 @@ func execute_program():
 			var condition = stripped_line.replace("loop:", "").strip_edges()
 			
 			if eval_condition(condition):
-				var loop_id = str(hash(lines) + i) # Unique ID for each loop
+				var loop_id = str(hash(lines) + i)
 				loop_iterations[loop_id] = loop_iterations.get(loop_id, 0) + 1
 				if loop_iterations[loop_id] > MAX_LOOP_ITERATIONS:
 					log_error("Loop exceeded max iterations. It may be an infinite loop.")
 					execution_stack.clear()
 					return
 				
-				# Move to the body of the loop
 				execution_stack.append({"lines": body_lines, "index": 0, "parent_loop_index": i})
-				frame.index = i + 1 # Prepare parent to skip past the loop body
+				frame.index = i + 1
 				continue
 			else:
-				# Exit the loop and move past its body
 				frame.index += body_lines.size() + 1
 				continue
 		
+		# Handle the entire if/else if/else chain as a single unit
 		elif stripped_line.begins_with("if:"):
-			var body_lines = get_block(lines, i)
 			var condition = stripped_line.replace("if:", "").strip_edges()
+			var block_lines = get_block(lines, i)
+			var block_executed = false
 			
 			if eval_condition(condition):
-				frame.index += 1
-				execution_stack.append({"lines": body_lines, "index": 0})
-				continue
-			else:
-				frame.index += body_lines.size() + 1
-				continue
-		
+				execution_stack.append({"lines": block_lines, "index": 0})
+				block_executed = true
+				
+			var current_index = i + block_lines.size() + 1
+			
+			# Search for and skip any connected 'else if' or 'else' blocks
+			while current_index < lines.size():
+				var next_line = lines[current_index]
+				var next_stripped_line = next_line.strip_edges()
+				
+				# If we find a new top-level block, the chain is over
+				if not (next_stripped_line.begins_with("else") or next_stripped_line.begins_with("else if:")):
+					break
+				
+				var next_block_lines = get_block(lines, current_index)
+				
+				if not block_executed and next_stripped_line.begins_with("else if:"):
+					var next_condition = next_stripped_line.replace("else if:", "").strip_edges()
+					if eval_condition(next_condition):
+						execution_stack.append({"lines": next_block_lines, "index": 0})
+						block_executed = true
+				elif not block_executed and next_stripped_line.begins_with("else"):
+					execution_stack.append({"lines": next_block_lines, "index": 0})
+					block_executed = true
+				
+				current_index += next_block_lines.size() + 1
+			
+			# Advance the parent frame's index to skip the entire chain
+			frame.index = current_index
+			continue
+
 		elif stripped_line.begins_with("input:"):
 			var var_name = stripped_line.replace("input:", "").strip_edges()
 			if var_name:
@@ -300,6 +327,45 @@ func parse_statement(line: String):
 	if line == "help":
 		show_help()
 		return
+	elif line == "clear":
+		console.clear()
+		return
+	elif line.begins_with("random"):
+		var parts = line.split(" ")
+		if parts.size() != 4:
+			log_error("Invalid 'random' syntax. Usage: random <var> <min> <max>")
+			return
+		
+		var var_name = parts[1]
+		var min_val = eval_expression(parts[2])
+		var max_val = eval_expression(parts[3])
+		
+		if not variables.has(var_name) or variables[var_name].type != "int":
+			log_error("Target variable for 'random' must be a declared integer.")
+			return
+		
+		if typeof(min_val) != TYPE_INT or typeof(max_val) != TYPE_INT:
+			log_error("Min and max values for 'random' must be integers.")
+			return
+		
+		randomize()
+		variables[var_name].value = randi_range(int(min_val), int(max_val))
+		return
+	elif line.begins_with("len"):
+		var parts = line.split(" ")
+		if parts.size() != 2:
+			log_error("Invalid 'len' syntax. Usage: len <var_name>")
+			return
+
+		var var_name = parts[1]
+		if not variables.has(var_name) or variables[var_name].type != "string":
+			log_error("Target variable for 'len' must be a declared string.")
+			return
+		
+		var length = variables[var_name].value.length()
+		log_output("Length of '" + var_name + "': " + str(length))
+		return
+
 
 	var parts_reassign = line.split("=", false, 1)
 	if parts_reassign.size() == 2:
@@ -441,8 +507,13 @@ func show_help():
 	log_output("vi <name> = <value>  : Declares an integer variable.")
 	log_output("vb <name> = <value>  : Declares a boolean variable.")
 	log_output("loop:<condition>     : A conditional loop that runs as long as the condition is true.")
-	log_output("if:<expr> < <expr> or <expr> == <expr> or <expr> > <expr> or <expr> != <expr> : A conditional statement.")
+	log_output("if:<condition>       : A conditional statement.")
+	log_output("else if:<condition>  : An alternative conditional statement.")
+	log_output("else                 : A fallback statement if no preceding conditions are met.")
 	log_output("input:<name>         : Prompts for user input and stores it in 'name'.")
+	log_output("clear                : Clears the console.")
+	log_output("random <var> <min> <max> : Generates a random integer and stores it in <var>.")
+	log_output("len <var>             : Prints the length of a string variable.")
 	log_output("help                 : Displays this help message.")
 	log_output("---")
 

@@ -24,6 +24,8 @@ offset_right = 1108.0
 offset_bottom = 451.0
 grow_horizontal = 2
 grow_vertical = 2
+symbol_lookup_on_click = true
+symbol_tooltip_on_hover = true
 line_folding = true
 gutters_draw_line_numbers = true
 indent_use_spaces = true
@@ -62,6 +64,15 @@ placeholder_text = "Console"
 context_menu_enabled = false
 emoji_menu_enabled = false
 clear_button_enabled = true
+
+[node name="CopyButton" type="Button" parent="Console_Panel"]
+visible = false
+layout_mode = 0
+offset_left = 696.0
+offset_top = 115.0
+offset_right = 775.0
+offset_bottom = 143.0
+text = "Copy Logs"
 
 [node name="Buttons_Panel" type="Panel" parent="."]
 modulate = Color(0, 0, 0, 1)
