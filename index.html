@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YOScript & YOIDE Grimoire</title>
+    <style>
+        /* General Styles */
+        body {
+            font-family: sans-serif, 'Inter', 'Roboto Mono';
+            background-color: #0c0a1a;
+            color: #d1d5db;
+            margin: 0;
+            padding: 0;
+        }
+        
+        /* Main Layout */
+        .container {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        @media (min-width: 768px) {
+            .container {
+                flex-direction: row;
+            }
+        }
+        
+        /* Sidebar Navigation */
+        .sidebar {
+            width: 100%;
+            background-color: #121021;
+            border-bottom: 1px solid #332f50;
+            padding: 1rem 1.5rem;
+        }
+        @media (min-width: 768px) {
+            .sidebar {
+                width: 16rem; /* md:w-64 */
+                border-right: 1px solid #332f50;
+                border-bottom: none;
+                padding: 1.5rem;
+            }
+        }
+        .sidebar-title {
+            font-size: 1.5rem; /* text-2xl */
+            font-weight: 800; /* font-extrabold */
+            color: #93c5fd; /* text-blue-300 */
+            letter-spacing: -0.025em; /* tracking-tight */
+            margin-bottom: 1.5rem;
+            display: none;
+        }
+        @media (min-width: 768px) {
+            .sidebar-title {
+                display: block;
+            }
+        }
+        .nav-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        @media (min-width: 768px) {
+            .nav-list {
+                flex-direction: column;
+                gap: 1rem;
+            }
+        }
+        .nav-link {
+            display: block;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            color: #d1d5db;
+            transition-property: background-color;
+            transition-duration: 300ms;
+        }
+        .nav-link:hover {
+            background-color: #1f1d36;
+        }
+        .nav-link.active {
+            background-color: #1f1d36;
+            border-left: 4px solid #6366f1;
+            font-weight: 600;
+        }
+        .nav-link-text-md {
+            display: none;
+        }
+        @media (min-width: 768px) {
+            .nav-link-text-md {
+                display: inline;
+            }
+        }
+        .nav-link-text-sm {
+            display: inline;
+        }
+        @media (min-width: 768px) {
+            .nav-link-text-sm {
+                display: none;
+            }
+        }
+
+        /* Main Content Area */
+        .content-area {
+            flex-grow: 1;
+            padding: 1rem;
+        }
+        @media (min-width: 768px) {
+            .content-area {
+                padding: 2rem;
+            }
+        }
+        .content-section {
+            display: none;
+        }
+        .content-section.active {
+            display: block;
+        }
+        
+        /* Wiki Card Styles */
+        .wiki-card {
+            background-color: #1f1d36;
+            border: 1px solid #332f50;
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            padding: 1.5rem 2.5rem;
+        }
+        @media (min-width: 768px) {
+            .wiki-card {
+                padding: 2.5rem;
+            }
+        }
+        
+        /* Typography & Code */
+        .section-title {
+            font-size: 2.25rem; /* text-4xl */
+            font-weight: 700; /* font-bold */
+            color: #8c90f5;
+            display: flex;
+            align-items: center;
+        }
+        @media (min-width: 768px) {
+            .section-title {
+                font-size: 2.5rem; /* md:text-5xl */
+            }
+        }
+        .gradient-text {
+            background-image: linear-gradient(to right, #6366f1, #a855f7);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .code-block {
+            font-family: monospace, 'Roboto Mono';
+            background-color: #1f1d36;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            border: 1px solid #332f50;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            overflow-x: auto;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            margin-top: 1rem;
+            font-size: 0.875rem; /* text-sm */
+        }
+        .icon {
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 0.5rem;
+            width: 2rem; /* w-8 */
+            height: 2rem; /* h-8 */
+        }
+        @media (min-width: 768px) {
+            .icon {
+                width: 2.5rem; /* md:w-10 */
+                height: 2.5rem; /* md:h-10 */
+            }
+        }
+        
+        /* Responsive Grid & Flexbox */
+        .grid-container {
+            display: grid;
+            gap: 2rem;
+            grid-template-columns: repeat(1, minmax(0, 1fr));
+        }
+        @media (min-width: 768px) {
+            .grid-container-2col {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+            .grid-container-3col {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+        }
+        
+        /* Misc. utility styles */
+        .mt-6 { margin-top: 1.5rem; }
+        .mb-4 { margin-bottom: 1rem; }
+        .text-center { text-align: center; }
+        .text-gray-400 { color: #9ca3af; }
+        .text-blue-300 { color: #93c5fd; }
+        .text-yellow-400 { color: #facc15; }
+        .text-green-400 { color: #4ade80; }
+        .text-purple-400 { color: #c084fc; }
+        .text-orange-400 { color: #fb923c; }
+        .text-red-400 { color: #f87171; }
+        .rounded-2xl { border-radius: 1rem; }
+        .hidden-md { display: block; }
+        @media (min-width: 768px) {
+            .hidden-md { display: none; }
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <div class="container">
+        
+        <!-- Left Sidebar Navigation -->
+        <nav class="sidebar">
+            <h1 class="sidebar-title">Grimoire</h1>
+            <ul class="nav-list">
+                <li><a href="#home" class="nav-link active"><span class="nav-link-text-sm">Home</span><span class="nav-link-text-md">The Grimoire</span></a></li>
+                <li><a href="#yoscript" class="nav-link"><span class="nav-link-text-sm">YOScript</span><span class="nav-link-text-md">Artifact of Logic</span></a></li>
+                <li><a href="#yoide" class="nav-link"><span class="nav-link-text-sm">YOIDE</span><span class="nav-link-text-md">The Command Nexus</span></a></li>
+                <li><a href="#commands" class="nav-link"><span class="nav-link-text-sm">Commands</span><span class="nav-link-text-md">The Codex</span></a></li>
+                <li><a href="#variables" class="nav-link"><span class="nav-link-text-sm">Variables</span><span class="nav-link-text-md">The Scribe's Memory</span></a></li>
+                <li><a href="#logic" class="nav-link"><span class="nav-link-text-sm">Logic</span><span class="nav-link-text-md">Threads of Control</span></a></li>
+            </ul>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="content-area">
+
+            <!-- Home Section -->
+            <div id="home" class="content-section active wiki-card text-center">
+                <h2 class="section-title gradient-text mb-4">The OS of Creation</h2>
+                <p class="text-lg md:text-xl text-gray-400 leading-relaxed mx-auto text-center">
+                    Within this grimoire lies the knowledge of **YOScript**, a simple yet powerful language for shaping logic and command. Wield the **YOIDE** as your terminal, and master the arcane spells of code to bend reality to your will.
+                </p>
+                
+            </div>
+
+            <!-- What is YOScript? -->
+            <div id="yoscript" class="content-section wiki-card">
+                <h2 class="section-title text-yellow-400">
+                    <svg class="icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L1 12h3v8h16v-8h3L12 2zm0 10l5 5h-4v-3h-2v3h-4l5-5z"/></svg>
+                    Artifact of Logic: YOScript
+                </h2>
+                <div class="grid-container grid-container-2col mt-6">
+                    <p class="text-gray-300 leading-relaxed">
+                        YOScript is an ancient, interpreted language, simple in form but limitless in application. It's built on clear, keyword-based commands, making it a perfect first step on your journey to becoming a master scripter. Each line is a spell; each command is a gesture of power.
+                    </p>
+                    <div class="code-block">
+                        <pre>vs message = "Hello, Adventurer!"
+print message</pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- YOIDE Section -->
+            <div id="yoide" class="content-section wiki-card">
+                <h2 class="section-title text-green-400">
+                    <svg class="icon" viewBox="0 0 24 24" fill="currentColor"><path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V8h16v10z"/></svg>
+                    The YOIDE: Command Nexus
+                </h2>
+                <div class="grid-container grid-container-2col mt-6">
+                    <p class="text-gray-300 leading-relaxed">
+                        The **YOIDE** is your terminal, your direct link to the YOScript engine. It's where you write your incantations, see the results of your spells in the console, and manage the magical artifacts (your scripts). The editor is where you craft, the console is where you witness the magic unfold.
+                    </p>
+                    
+                </div>
+            </div>
+
+            <!-- Core Commands -->
+            <div id="commands" class="content-section wiki-card">
+                <h2 class="section-title text-purple-400">
+                    <svg class="icon" viewBox="0 0 24 24" fill="currentColor"><path d="M20 2H4c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM4 20V4h16l0 16H4zM16 11H8V9h8v2zm-2 4h-4v-2h4v2z"/></svg>
+                    The Codex of Commands
+                </h2>
+                <p class="text-gray-400 mt-6">These are the fundamental spells in your arsenal. Wield them wisely to bring your creations to life.</p>
+                <div class="grid-container grid-container-3col mt-6">
+                    <div class="wiki-card rounded-2xl p-6">
+                        <h3 class="text-2xl font-semibold text-blue-300 mb-2">print</h3>
+                        <p class="text-gray-300">Displays a message or value in the console, a crucial spell for debugging and communication.</p>
+                        <pre class="code-block">print "Hello"
+print 10 + 5</pre>
+                    </div>
+                    <div class="wiki-card rounded-2xl p-6">
+                        <h3 class="text-2xl font-semibold text-blue-300 mb-2">input:</h3>
+                        <p class="text-gray-300">Prompts the user for input, allowing your script to gather information from the outside world.</p>
+                        <pre class="code-block">vs name = ""
+input: name</pre>
+                    </div>
+                    <div class="wiki-card rounded-2xl p-6">
+                        <h3 class="text-2xl font-semibold text-blue-300 mb-2">func: & call</h3>
+                        <p class="text-gray-300">Creates a reusable block of code (`func`) and executes it by name (`call`).</p>
+                        <pre class="code-block">func: greet
+    print "Hi there!"
+call greet</pre>
+                    </div>
+                    <div class="wiki-card rounded-2xl p-6">
+                        <h3 class="text-2xl font-semibold text-blue-300 mb-2">list, add, get</h3>
+                        <p class="text-gray-300">Conjures a collection of items (`list`), adds to it (`add`), and retrieves a specific item (`get`).</p>
+                        <pre class="code-block">list my_list
+add my_list "apple"
+vs fruit = ""
+get fruit my_list 0</pre>
+                    </div>
+                    <div class="wiki-card rounded-2xl p-6">
+                        <h3 class="text-2xl font-semibold text-blue-300 mb-2">random, len</h3>
+                        <p class="text-gray-300">Generates a random number (`random`) or determines the length of a word or list (`len`).</p>
+                        <pre class="code-block">vi num = 0
+random num 1 10
+vs word = "wiki"
+len word</pre>
+                    </div>
+                    <div class="wiki-card rounded-2xl p-6">
+                        <h3 class="text-2xl font-semibold text-blue-300 mb-2">timer:</h3>
+                        <p class="text-gray-300">A time-dilation spell that pauses execution for a specified number of milliseconds.</p>
+                        <pre class="code-block">print "Waiting..."
+timer: 2000
+print "Done!"</pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Variables -->
+            <div id="variables" class="content-section wiki-card">
+                <h2 class="section-title text-orange-400">
+                    <svg class="icon" viewBox="0 0 24 24" fill="currentColor"><path d="M22 13v-2c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v2c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2zm-2 0H4v-2h16v2zM22 7V5c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v2c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2zm-2 0H4V5h16v2zM22 19v-2c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v2c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2zm-2 0H4v-2h16v2z"/></svg>
+                    The Scribe's Memory: Variables
+                </h2>
+                <p class="text-gray-400 mt-6">Variables are the enchanted scrolls on which you record data. Each type holds a different kind of information.</p>
+                <div class="grid-container grid-container-3col mt-6">
+                    <div class="wiki-card rounded-2xl p-6">
+                        <h3 class="text-2xl font-semibold text-blue-300 mb-2">vs (String)</h3>
+                        <p class="text-gray-300">Stores text-based knowledge, like a phrase or a name.</p>
+                        <pre class="code-block">vs name = "Yolo"
+vs greeting = "Hi " + name</pre>
+                    </div>
+                    <div class="wiki-card rounded-2xl p-6">
+                        <h3 class="text-2xl font-semibold text-blue-300 mb-2">vi (Integer)</h3>
+                        <p class="text-gray-300">Stores numerical values, from a creature's health to a spell's cooldown.</p>
+                        <pre class="code-block">vi age = 30
+vi year = age * 2</pre>
+                    </div>
+                    <div class="wiki-card rounded-2xl p-6">
+                        <h3 class="text-2xl font-semibold text-blue-300 mb-2">vb (Boolean)</h3>
+                        <p class="text-gray-300">Stores a simple state: `true` or `false`, like whether a door is open or a quest is complete.</p>
+                        <pre class="code-block">vb is_valid = true
+vb is_ready = 10 > 5</pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Control Flow and Logic -->
+            <div id="logic" class="content-section wiki-card">
+                <h2 class="section-title text-red-400">
+                    <svg class="icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15v-6h2v6h-2zm-1-8V7h2v2h-2z"/></svg>
+                    The Threads of Control: Logic & Loops
+                </h2>
+                <p class="text-gray-400 mt-6">These commands dictate the path your script will follow, allowing for decisions and repetition.</p>
+                <div class="grid-container grid-container-2col mt-6">
+                    <div class="wiki-card rounded-2xl p-6">
+                        <h3 class="text-2xl font-semibold text-blue-300 mb-2">if: else if: else</h3>
+                        <p class="text-gray-300">Creates a branching path, executing different blocks of code based on a condition.</p>
+                        <pre class="code-block">vi num = 10
+if: num > 10
+    print "Greater"
+else if: num == 10
+    print "Equal"
+else
+    print "Smaller"</pre>
+                    </div>
+                    <div class="wiki-card rounded-2xl p-6">
+                        <h3 class="text-2xl font-semibold text-blue-300 mb-2">loop:, break, continue</h3>
+                        <p class="text-gray-300">Repeats a block of code as long as a condition is met. Use `break` to exit early or `continue` to skip to the next iteration.</p>
+                        <pre class="code-block">vi counter = 0
+loop: counter < 5
+    print "Looping..."
+    counter = counter + 1
+    if: counter == 3
+        print "Skipping next print"
+        continue
+    print counter</pre>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Footer -->
+    <footer class="text-center p-6 text-gray-500 text-sm border-t border-[#332f50]">
+        <p>Crafted with YOScript. All rights reserved.</p>
+    </footer>
+
+    <script>
+        const navLinks = document.querySelectorAll('.nav-link');
+        const contentSections = document.querySelectorAll('.content-section');
+
+        function showSection(sectionId) {
+            contentSections.forEach(section => {
+                section.classList.remove('active');
+            });
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+            });
+
+            const targetSection = document.getElementById(sectionId);
+            if (targetSection) {
+                targetSection.classList.add('active');
+            }
+
+            const activeNavLink = document.querySelector(`a[href="#${sectionId}"]`);
+            if (activeNavLink) {
+                activeNavLink.classList.add('active');
+            }
+        }
+
+        navLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const sectionId = link.getAttribute('href').substring(1);
+                showSection(sectionId);
+            });
+        });
+    </script>
+</body>
+</html>
+
