@@ -1,0 +1,9 @@
+vb bool = false
+
+loop: bool == false
+    print "Press enter to exit"
+    vs enter = ""
+    input:enter
+    if: enter == ""
+        print "exited"
+        loop = true
