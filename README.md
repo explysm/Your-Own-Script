@@ -9,12 +9,12 @@ Docs can be found [here](HELP.md)
 ---
 YOS Comes in a 7zip archive that includes:
 
-Your Own Script (application)
-Template Program.cs
-Your Own Script.csproj
-obj/
+**Your Own Script (application)**<br>
+**Template Program.cs**<br>
+**Your Own Script.csproj**<br>
+**obj/**<br>
 
-**Note:** The (Soon to be) Android version will only include the base IDE and C# compiler.
+**Note:** The (Soon to be) Android version will only include the base IDE.
 
 # Dependencies:
 ---
