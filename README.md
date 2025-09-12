@@ -3,6 +3,8 @@
 ---
 IDE and C# compiler for YOScript.
 
+Docs can be found [here](HELP.md)
+
 # Development:
 ---
 At least Godot 4.3x
