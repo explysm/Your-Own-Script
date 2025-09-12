@@ -22,7 +22,7 @@ This document provides a quick reference for the YOScript language syntax and co
 | :--- | :--- | :--- | :--- |
 | **`vs`** | String | Declares a string variable. | **Syntax:**<br>`vs <name> = "<value>"`<br><br>**Example:**<br>`vs my_name = "YOScript"` |
 | **`vi`** | Integer | Declares an integer variable. | **Syntax:**<br>`vi <name> = <value>`<br><br>**Example:**<br>`vi my_age = 10` |
-| **`vb` | Boolean | Declares a boolean variable. | **Syntax:**<br>`vb <name> = <value>`<br><br>**Example:**<br>`vb is_active = true` |
+| **`vb`** | Boolean | Declares a boolean variable. | **Syntax:**<br>`vb <name> = <value>`<br><br>**Example:**<br>`vb is_active = true` |
 
 ---
 
