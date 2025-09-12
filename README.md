@@ -1,2 +1,2 @@
-# Your-Own-Script
-IDE for YOScript
+# YourOwnScript
+IDE (and soon to be compiler) for YOScript.
