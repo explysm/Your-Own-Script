@@ -2,7 +2,7 @@ extends Control
 
 # ---------------------------
 # Keywords for syntax highlighting
-const KEYWORDS = ["print", "vs", "vi", "loop:", "input:", "help", "if:", "vb", "==", "<", ">", "!=", "loop", "clear", "random", "len", "timer:"]
+const KEYWORDS = ["print", "vs", "vi", "vb", "loop:", "if:", "else", "else if:", "input:", "help", "clear", "random", "len", "timer:", "break", "continue", "func:", "call", "list", "add", "get"]
 const MAX_LOOP_ITERATIONS = 100000
 
 # Node references
@@ -22,6 +22,7 @@ const MAX_LOOP_ITERATIONS = 100000
 
 # Variable storage
 var variables = {}
+var functions = {}
 var highlighter_theme = CodeHighlighter.new()
 var awaiting_input_for_variable = ""
 var loop_iterations = {} # Now a dictionary to handle multiple loops
@@ -68,6 +69,13 @@ func update_highlighter():
 	highlighter_theme.add_keyword_color("random", Color.WHITE)
 	highlighter_theme.add_keyword_color("len", Color.WHITE)
 	highlighter_theme.add_keyword_color("timer:", Color.ORANGE)
+	highlighter_theme.add_keyword_color("break", Color.RED)
+	highlighter_theme.add_keyword_color("continue", Color.RED)
+	highlighter_theme.add_keyword_color("func:", Color.PURPLE)
+	highlighter_theme.add_keyword_color("call", Color.PURPLE)
+	highlighter_theme.add_keyword_color("list", Color.BLUE)
+	highlighter_theme.add_keyword_color("add", Color.BLUE)
+	highlighter_theme.add_keyword_color("get", Color.BLUE)
 	highlighter_theme.add_color_region("#", "", Color.DARK_GRAY)
 	
 	editor.syntax_highlighter = highlighter_theme
@@ -193,12 +201,29 @@ func find_dotnet_path_from_path_env():
 func _on_run_pressed() -> void:
 	console.clear()
 	variables.clear()
+	functions.clear()
 	loop_iterations.clear()
 	execution_stack.clear()
 	
 	var lines = editor.text.split("\n")
-	execution_stack.append({"lines": lines, "index": 0})
 	
+	# First pass: Find and store all function definitions
+	var i = 0
+	while i < lines.size():
+		var stripped_line = lines[i].strip_edges()
+		if stripped_line.begins_with("func:"):
+			var func_name = stripped_line.replace("func:", "").strip_edges()
+			if func_name.is_empty():
+				log_error("Function name not declared.")
+				return
+			var func_body = get_block(lines, i)
+			functions[func_name] = func_body
+			i += func_body.size() + 1
+		else:
+			i += 1
+	
+	# Second pass: Execute the main body of the program
+	execution_stack.append({"lines": lines, "index": 0})
 	await execute_program()
 
 func execute_program() -> void:
@@ -217,6 +242,43 @@ func execute_program() -> void:
 		if stripped_line.is_empty() or stripped_line.begins_with("#"):
 			frame.index += 1
 			continue
+		
+		# --- New command logic ---
+		if stripped_line == "break":
+			# Find the parent loop and pop its frame to exit the loop
+			var found_loop = false
+			while execution_stack.size() > 0:
+				var current_frame = execution_stack.back()
+				if current_frame.get("parent_loop_index") != null:
+					execution_stack.pop_back() # Pop the loop's body frame
+					found_loop = true
+					break
+				execution_stack.pop_back() # Pop any other frames (e.g., if/else)
+			if not found_loop:
+				log_error("'break' command used outside of a loop.")
+				execution_stack.clear()
+			continue
+		
+		if stripped_line == "continue":
+			# Find the parent loop and reset its index to the beginning of the loop's body
+			var found_loop = false
+			for j in range(execution_stack.size() -1, -1, -1):
+				var current_frame = execution_stack[j]
+				if current_frame.get("parent_loop_index") != null:
+					execution_stack.back().index = current_frame.lines.size() # End the current iteration
+					found_loop = true
+					break
+			if not found_loop:
+				log_error("'continue' command used outside of a loop.")
+				execution_stack.clear()
+			continue
+		
+		if stripped_line.begins_with("func:"):
+			# Skip function declaration during execution pass
+			var func_body = get_block(lines, i)
+			frame.index += func_body.size() + 1
+			continue
+		# --- End new command logic ---
 
 		if stripped_line.begins_with("loop:"):
 			var body_lines = get_block(lines, i)
@@ -372,6 +434,77 @@ func parse_statement(line: String):
 		var length = variables[var_name].value.length()
 		log_output("Length of '" + var_name + "': " + str(length))
 		return
+	elif line.begins_with("call"):
+		var func_name = line.replace("call", "").strip_edges()
+		if functions.has(func_name):
+			execution_stack.append({"lines": functions[func_name], "index": 0})
+		else:
+			log_error("Unknown function: " + func_name)
+		return
+	elif line.begins_with("list"):
+		var parts = line.split(" ")
+		if parts.size() < 2:
+			log_error("Invalid 'list' syntax. Usage: list <var_name>")
+			return
+		var var_name = parts[1]
+		if KEYWORDS.has(var_name):
+			log_error("Cannot use a keyword as a list name: " + var_name)
+			return
+		variables[var_name] = {"type": "list", "value": []}
+		return
+	elif line.begins_with("add"):
+		var parts = line.split(" ", false, 2)
+		if parts.size() < 3:
+			log_error("Invalid 'add' syntax. Usage: add <list_name> <value>")
+			return
+		var list_name = parts[1].strip_edges()
+		if not variables.has(list_name) or variables[list_name].type != "list":
+			log_error("Target variable for 'add' is not a list: " + list_name)
+			return
+		
+		var value = eval_literal(parts[2].strip_edges())
+		if value == null:
+			# If eval_literal fails, try eval_expression for more complex cases.
+			value = eval_expression(parts[2].strip_edges())
+		
+		if value != null:
+			variables[list_name].value.append(value)
+		else:
+			log_error("Invalid value for 'add' command.")
+		return
+	elif line.begins_with("get"):
+		var parts = line.split(" ")
+		if parts.size() != 4:
+			log_error("Invalid 'get' syntax. Usage: get <var_name> <list_name> <index>")
+			return
+		var var_name = parts[1].strip_edges()
+		var list_name = parts[2].strip_edges()
+		var index = eval_expression(parts[3].strip_edges())
+		if not variables.has(list_name) or variables[list_name].type != "list":
+			log_error("Target for 'get' is not a list: " + list_name)
+			return
+		if not variables.has(var_name):
+			log_error("Target variable for 'get' not declared: " + var_name)
+			return
+		if typeof(index) != TYPE_INT or index < 0 or index >= variables[list_name].value.size():
+			log_error("Invalid index for 'get' command.")
+			return
+		
+		var value = variables[list_name].value[index]
+		var var_type = variables[var_name].get("type")
+		if var_type == "int":
+			if typeof(value) == TYPE_INT:
+				variables[var_name].value = value
+			else:
+				log_error("Cannot assign non-integer value from list to integer variable.")
+		elif var_type == "bool":
+			if typeof(value) == TYPE_BOOL:
+				variables[var_name].value = value
+			else:
+				log_error("Cannot assign non-boolean value from list to boolean variable.")
+		else:
+			variables[var_name].value = str(value)
+		return
 
 
 	var parts_reassign = line.split("=", false, 1)
@@ -397,8 +530,10 @@ func parse_statement(line: String):
 						variables[var_name].value = bool(new_value)
 					else:
 						log_error("Cannot assign " + typeof_to_string(typeof(new_value)) + " to boolean variable '" + var_name + "'")
-				else: # string
+				elif var_type == "string":
 					variables[var_name].value = str(new_value)
+				else:
+					log_error("Cannot reassign a list variable '" + var_name + "' with a single value.")
 				return
 			else:
 				log_error("Invalid value for variable reassignment: " + new_value_expr)
@@ -509,20 +644,27 @@ func show_help():
 	console.clear()
 	log_output("--- YOScript Help ---")
 	log_output("Blocks are defined by indentation.")
-	log_output("print <value>        : Prints a value to the console.")
-	log_output("vs <name> = <value>  : Declares a string variable.")
-	log_output("vi <name> = <value>  : Declares an integer variable.")
-	log_output("vb <name> = <value>  : Declares a boolean variable.")
-	log_output("loop:<condition>     : A conditional loop that runs as long as the condition is true.")
-	log_output("if:<condition>       : A conditional statement.")
-	log_output("else if:<condition>  : An alternative conditional statement.")
-	log_output("else                 : A fallback statement if no preceding conditions are met.")
-	log_output("input:<name>         : Prompts for user input and stores it in 'name'.")
-	log_output("clear                : Clears the console.")
+	log_output("print <value>          : Prints a value to the console.")
+	log_output("vs <name> = <value>    : Declares a string variable.")
+	log_output("vi <name> = <value>    : Declares an integer variable.")
+	log_output("vb <name> = <value>    : Declares a boolean variable.")
+	log_output("loop:<condition>       : A conditional loop that runs as long as the condition is true.")
+	log_output("break                  : Exits the current loop.")
+	log_output("continue               : Skips to the next iteration of the current loop.")
+	log_output("if:<condition>         : A conditional statement.")
+	log_output("else if:<condition>    : An alternative conditional statement.")
+	log_output("else                   : A fallback statement if no preceding conditions are met.")
+	log_output("func:<name>            : Declares a new function.")
+	log_output("call <name>            : Executes a declared function.")
+	log_output("list <name>            : Declares an empty list variable.")
+	log_output("add <list> <value>     : Adds a value to a list.")
+	log_output("get <var> <list> <index>: Gets a value from a list and stores it in <var>.")
+	log_output("input:<name>           : Prompts for user input and stores it in 'name'.")
+	log_output("clear                  : Clears the console.")
 	log_output("random <var> <min> <max> : Generates a random integer and stores it in <var>.")
-	log_output("len <var>             : Prints the length of a string variable.")
-	log_output("timer: <msec>         : Pauses execution for a specified number of milliseconds.")
-	log_output("help                 : Displays this help message.")
+	log_output("len <var>              : Prints the length of a string variable.")
+	log_output("timer: <msec>          : Pauses execution for a specified number of milliseconds.")
+	log_output("help                   : Displays this help message.")
 	log_output("---")
 
 # ---------------------------
@@ -627,7 +769,11 @@ func eval_math(expr: String):
 	
 	for key in variables:
 		input_names.append(key)
-		inputs.append(variables[key].value)
+		if variables[key].type == "list":
+			# Expressions don't handle lists, so we use a placeholder
+			inputs.append(null)
+		else:
+			inputs.append(variables[key].value)
 	
 	var error = expression.parse(expr, input_names)
 	if error != OK:
@@ -648,26 +794,71 @@ func log_error(msg: String):
 # Compile YOScript → C#
 func _on_compile_pressed():
 	var code = editor.text.split("\n")
-	var cs_lines = ["using System;", "", "class Program {", "    static void Main() {"]
+	var cs_lines = ["using System;", "using System.Collections.Generic;", "", "public class Program", "{"]
+	var main_body = ["    public static void Main()", "    {"]
+	var func_definitions = {} # Use a dictionary to store function bodies
 	variables.clear() # Clear variables for a clean compile pass
+
+	# First pass: Get all variables and function declarations
 	var i = 0
 	while i < code.size():
-		var line = code[i].strip_edges()
-		
-		if line.is_empty() or line.begins_with("#"):
-			i += 1
+		var stripped_line = code[i].strip_edges()
+		if stripped_line.begins_with("vs"):
+			var var_name = stripped_line.split(" ", false, 2)[1].split("=")[0].strip_edges()
+			variables[var_name] = {"type": "string", "value": null}
+		elif stripped_line.begins_with("vi"):
+			var var_name = stripped_line.split(" ", false, 2)[1].split("=")[0].strip_edges()
+			variables[var_name] = {"type": "int", "value": null}
+		elif stripped_line.begins_with("vb"):
+			var var_name = stripped_line.split(" ", false, 2)[1].split("=")[0].strip_edges()
+			variables[var_name] = {"type": "bool", "value": null}
+		elif stripped_line.begins_with("list"):
+			var var_name = stripped_line.split(" ")[1].strip_edges()
+			variables[var_name] = {"type": "list", "value": null}
+		elif stripped_line.begins_with("func:"):
+			var func_name = stripped_line.replace("func:", "").strip_edges()
+			var func_body_lines = get_block(code, i)
+			func_definitions[func_name] = func_body_lines
+			i += func_body_lines.size()
+		i += 1
+
+	# Add class-level variable declarations
+	for var_name in variables:
+		var var_type = variables[var_name].type
+		var type_string = "object"
+		if var_type == "string": type_string = "string"
+		elif var_type == "int": type_string = "int"
+		elif var_type == "bool": type_string = "bool"
+		elif var_type == "list": type_string = "List<object>"
+		cs_lines.append("    static " + type_string + " " + var_name + ";")
+	cs_lines.append("")
+
+	# Compile main body of the program
+	var j = 0
+	while j < code.size():
+		var line = code[j].strip_edges()
+		if line.begins_with("func:"):
+			var func_body_lines = get_block(code, j)
+			j += func_body_lines.size() + 1
 			continue
-			
-		var block_result = compile_block_statement(line, code, i)
-		if block_result.lines.is_empty():
-			var stmt_cs = compile_statement(line)
-			if not stmt_cs.is_empty():
-				cs_lines.append("        " + stmt_cs)
-			i += 1
-		else:
-			cs_lines.append_array(block_result.lines)
-			i = block_result.next_index
-	cs_lines.append("    }")
+		var stmt_cs = compile_statement(line)
+		if not stmt_cs.is_empty():
+			main_body.append("        " + stmt_cs)
+		j += 1
+		
+	main_body.append("    }")
+	
+	# Compile functions
+	for func_name in func_definitions:
+		var body_lines = func_definitions[func_name]
+		cs_lines.append("")
+		cs_lines.append("    public static void " + func_name + "()")
+		cs_lines.append("    {")
+		for compiled_line in compile_block(body_lines):
+			cs_lines.append("        " + compiled_line)
+		cs_lines.append("    }")
+
+	cs_lines.append_array(main_body)
 	cs_lines.append("}")
 	var file = FileAccess.open("Program.cs", FileAccess.WRITE)
 	for l in cs_lines:
@@ -675,34 +866,49 @@ func _on_compile_pressed():
 	file.close()
 	log_output("Compiled to Program.cs")
 
-func compile_block_statement(line: String, lines: Array, line_index: int) -> Dictionary:
-	if line.begins_with("if:"):
-		var condition = line.replace("if:", "").strip_edges()
-		var body_lines = get_block(lines, line_index)
-		var cs_lines = ["        if (%s)" % compile_expression_for_csharp(condition), "        {"]
-		for b_line in body_lines:
-			var stmt_cs = compile_statement(b_line.strip_edges())
+func compile_block(lines: Array, indent_level = 0) -> Array:
+	var compiled_lines = []
+	var i = 0
+	while i < lines.size():
+		var line = lines[i]
+		var stripped_line = remove_indentation(line)
+		
+		if stripped_line.is_empty() or stripped_line.begins_with("#"):
+			i += 1
+			continue
+
+		var block_start_index = i
+		var block_lines = get_block(lines, block_start_index)
+		
+		if stripped_line.begins_with("if:"):
+			var condition = stripped_line.replace("if:", "").strip_edges()
+			compiled_lines.append("if (%s)" % compile_expression_for_csharp(condition))
+			compiled_lines.append("{")
+			var inner_block_compiled = compile_block(block_lines, indent_level + 1)
+			compiled_lines.append_array(inner_block_compiled)
+			compiled_lines.append("}")
+			i += block_lines.size() + 1
+			
+		elif stripped_line.begins_with("loop:"):
+			var condition = stripped_line.replace("loop:", "").strip_edges()
+			compiled_lines.append("while (%s)" % compile_expression_for_csharp(condition))
+			compiled_lines.append("{")
+			var inner_block_compiled = compile_block(block_lines, indent_level + 1)
+			compiled_lines.append_array(inner_block_compiled)
+			compiled_lines.append("}")
+			i += block_lines.size() + 1
+			
+		else:
+			var stmt_cs = compile_statement(stripped_line)
 			if not stmt_cs.is_empty():
-				cs_lines.append("            " + stmt_cs)
-		cs_lines.append("        }")
-		return {"lines": cs_lines, "next_index": line_index + body_lines.size() + 1}
-	elif line.begins_with("loop:"):
-		var condition = line.replace("loop:", "").strip_edges()
-		var body_lines = get_block(lines, line_index)
-		var cs_lines = ["        while (%s)" % compile_expression_for_csharp(condition), "        {"]
-		for b_line in body_lines:
-			var stmt_cs = compile_statement(b_line.strip_edges())
-			if not stmt_cs.is_empty():
-				cs_lines.append("            " + stmt_cs)
-		cs_lines.append("        }")
-		return {"lines": cs_lines, "next_index": line_index + body_lines.size() + 1}
-	else:
-		return {"lines": [], "next_index": line_index + 1}
+				compiled_lines.append(stmt_cs)
+			i += 1
+			
+	return compiled_lines
 
 func compile_expression_for_csharp(expr: String) -> String:
 	expr = expr.strip_edges()
 	
-	# Handle simple cases for C# compilation
 	if variables.has(expr):
 		return expr
 	if expr.is_valid_int() or expr.is_valid_float():
@@ -712,7 +918,6 @@ func compile_expression_for_csharp(expr: String) -> String:
 	if expr == "true" or expr == "false":
 		return expr.to_lower()
 
-	# Use a regex-like approach for complex expressions to handle different operators
 	var operators = ["==", "!=", "<", ">", "\\+", "-", "\\*", "/"]
 	for op in operators:
 		var parts = expr.split(op, false, 1)
@@ -721,7 +926,6 @@ func compile_expression_for_csharp(expr: String) -> String:
 			var right = compile_expression_for_csharp(parts[1])
 			return "(%s %s %s)" % [left, op.replace("\\", ""), right]
 	
-	# If nothing else matches, return the expression as-is (might be an unknown var or function)
 	return expr
 
 func compile_statement(line: String) -> String:
@@ -734,19 +938,42 @@ func compile_statement(line: String) -> String:
 		var var_name = parts[0].replace("vs", "").strip_edges()
 		var var_value = compile_expression_for_csharp(parts[1].strip_edges())
 		variables[var_name] = {"type": "string", "value": null}
-		return "string %s = %s;" % [var_name, var_value]
+		return "%s = %s;" % [var_name, var_value]
 	elif line.begins_with("vi"):
 		var parts = line.split("=", false, 1)
 		var var_name = parts[0].replace("vi", "").strip_edges()
 		var var_value = compile_expression_for_csharp(parts[1].strip_edges())
 		variables[var_name] = {"type": "int", "value": null}
-		return "int %s = %s;" % [var_name, var_value]
+		return "%s = %s;" % [var_name, var_value]
 	elif line.begins_with("vb"):
 		var parts = line.split("=", false, 1)
 		var var_name = parts[0].replace("vb", "").strip_edges()
 		var var_value = compile_expression_for_csharp(parts[1].strip_edges())
 		variables[var_name] = {"type": "bool", "value": null}
-		return "bool %s = %s;" % [var_name, var_value]
+		return "%s = %s;" % [var_name, var_value]
+	elif line.begins_with("list"):
+		var parts = line.split(" ")
+		var var_name = parts[1].strip_edges()
+		variables[var_name] = {"type": "list", "value": null}
+		return "%s = new List<object>();" % var_name
+	elif line.begins_with("add"):
+		var parts = line.split(" ", false, 2)
+		var list_name = parts[1].strip_edges()
+		var var_value = compile_expression_for_csharp(parts[2].strip_edges())
+		return "%s.Add(%s);" % [list_name, var_value]
+	elif line.begins_with("get"):
+		var parts = line.split(" ")
+		if parts.size() != 4:
+			return "" # Avoid compiler error, will be caught by runtime
+		var var_name = parts[1].strip_edges()
+		var list_name = parts[2].strip_edges()
+		var index = compile_expression_for_csharp(parts[3].strip_edges())
+		var var_type = variables.get(var_name, {}).get("type", "object")
+		var cast = ""
+		if var_type == "string": cast = "(string)"
+		elif var_type == "int": cast = "(int)"
+		elif var_type == "bool": cast = "(bool)"
+		return "%s = %s%s[%s];" % [var_name, cast, list_name, index]
 	elif line.begins_with("input:"):
 		var var_name = line.replace("input:", "").strip_edges()
 		var var_type = variables.get(var_name, {}).get("type", "string")
@@ -756,6 +983,13 @@ func compile_statement(line: String) -> String:
 			return "%s = bool.Parse(Console.ReadLine());" % var_name
 		else:
 			return "%s = Console.ReadLine();" % var_name
+	elif line == "break":
+		return "break;"
+	elif line == "continue":
+		return "continue;"
+	elif line.begins_with("call"):
+		var func_name = line.replace("call", "").strip_edges()
+		return "%s();" % func_name
 	
 	var parts_reassign = line.split("=", false, 1)
 	if parts_reassign.size() == 2:
@@ -765,3 +999,7 @@ func compile_statement(line: String) -> String:
 		return "%s = %s;" % [var_name, compiled_expr]
 
 	return ""
+
+
+func _on_docs_pressed() -> void:
+	OS.shell_open("https://doc.yike.games")

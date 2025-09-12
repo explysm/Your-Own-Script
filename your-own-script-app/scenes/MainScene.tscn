@@ -145,3 +145,13 @@ offset_top = 15.0
 offset_right = 602.0
 offset_bottom = 35.0
 text = "Your Own Script."
+
+[node name="Docs" type="Button" parent="."]
+layout_mode = 0
+offset_left = 804.0
+offset_top = 583.0
+offset_right = 866.0
+offset_bottom = 617.0
+text = "Docs"
+
+[connection signal="pressed" from="Docs" to="." method="_on_docs_pressed"]
