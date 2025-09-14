@@ -1,12 +1,12 @@
 # YourOwnScript
 
-https://docs.yike.games
+https://yourown.yike.games
 
 ![YOScript. Your Own](images/YourOwn.png)
 ---
 IDE and C# compiler for YOScript, the **easiest** language you can learn.
 
-**Docs can be found [here](https://docs.yike.games)**
+**Docs can be found [here](https://yourown.yike.games/docs.html)**
 
 # Installation:
 ---
