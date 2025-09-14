@@ -36,18 +36,12 @@ At least Godot 4.3x
 Clone the repo by using:
 
 ```bash
-git clone https://github.com/explysm/Your-Own-Script
+git clone https://github.com/explysm/your-own-script
 ```
-
-
 
 # Note:
 ---
 I did use AI for most - since i suck and fell for the AI propaganda.
-
-**To save and load .yo files on android, go to settings, search for "Your Own", click "Permissions" and toggle on "Storage"**
-
-
 
 > [!IMPORTANT]
 >
