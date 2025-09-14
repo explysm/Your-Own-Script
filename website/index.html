@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YOScript & YOIDE</title>
+    <style>
+        body {
+            font-family: sans-serif, 'Inter', 'Roboto Mono';
+            background-color: #0c0a1a;
+            color: #d1d5db;
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* Hero section styling */
+        .hero {
+            position: relative;
+            background: linear-gradient(180deg, rgba(17, 24, 39, 0.5) 0%, rgba(17, 24, 39, 0.9) 100%), url('https://user-images.githubusercontent.com/129654153/264560731-152281be-1335-4422-9226-f48344e69c10.gif') no-repeat center center;
+            background-size: cover;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            z-index: 1;
+        }
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: -1;
+        }
+        .hero-text {
+            max-width: 32rem;
+            margin-left: auto;
+            margin-right: auto;
+            padding: 0 1rem;
+        }
+        .hero-title {
+            font-size: 3rem;
+            font-weight: 800;
+            color: #e5e7eb;
+            letter-spacing: -0.05em;
+        }
+        .hero-subtitle {
+            margin-top: 1rem;
+            font-size: 1.125rem;
+            color: #d1d5db;
+        }
+
+        /* Text Logo Styling */
+        .text-logo {
+            font-size: 3.5rem; /* Larger font size for prominence */
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: 1.5rem; /* Space between logo and hero title */
+            animation: floatUpDown 3s ease-in-out infinite; /* Floating animation */
+        }
+        .text-logo span {
+            display: block; /* Each line on its own block */
+        }
+        .text-logo .yoscript-main {
+            color: #e5e7eb; /* Standard text color for "Script." */
+        }
+        .text-logo .gradient-yo-in-yoscript {
+            background-image: linear-gradient(to right, #6366f1, #a855f7); /* Purple and blue gradient */
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent; /* Makes the text use the background clip */
+            display: inline; /* Keep "YO" on the same line as "Script." */
+        }
+        .text-logo .your-own-line {
+            color: #d1d5db; /* Slightly subdued text color for "Your Own." */
+            font-size: 2rem; /* Smaller for "Your Own." */
+        }
+        
+        @keyframes floatUpDown {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+
+        /* Buttons and navigation */
+        .buttons {
+            margin-top: 2.5rem;
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-direction: column;
+        }
+        @media (min-width: 640px) {
+            .buttons {
+                flex-direction: row;
+            }
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 500;
+            border-radius: 0.5rem;
+            transition-property: all;
+            transition-duration: 300ms;
+            text-decoration: none;
+        }
+        .btn-primary {
+            background-color: #4f46e5;
+            color: #fff;
+            border: 1px solid transparent;
+        }
+        .btn-primary:hover {
+            background-color: #4338ca;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3);
+        }
+        .btn-secondary {
+            background-color: transparent;
+            color: #93c5fd;
+            border: 1px solid #4f46e5;
+        }
+        .btn-secondary:hover {
+            background-color: #1e1b4b;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(79, 70, 229, 0.15);
+        }
+
+        /* Main Content Container */
+        .content-container {
+            display: none;
+            flex-grow: 1;
+            background-color: #0c0a1a;
+            color: #d1d5db;
+            padding: 2rem;
+        }
+        .content-container.active {
+            display: block;
+        }
+        .wiki-card {
+            background-color: #1f1d36;
+            border: 1px solid #332f50;
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            padding: 1.5rem 2.5rem;
+            max-width: 48rem;
+            margin-left: auto;
+            margin-right: auto;
+            animation: fadeIn 0.8s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .wiki-title {
+            font-size: 2.25rem;
+            font-weight: 700;
+            color: #8c90f5;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .download-btn {
+            display: block;
+            width: 100%;
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #fff;
+            background-color: #4f46e5;
+            border-radius: 0.5rem;
+            text-align: center;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        .download-btn:hover {
+            background-color: #4338ca;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3);
+        }
+        .download-links {
+            list-style: none;
+            padding: 0;
+            margin-top: 2rem;
+            display: grid;
+            gap: 1rem;
+        }
+        .download-links li {
+            background-color: #2a2840;
+            border: 1px solid #332f50;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+        .download-links li:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .docs-section {
+            display: none;
+            padding: 2rem;
+            max-width: 48rem;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .docs-section.active {
+            display: block;
+        }
+        .docs-section h2 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #8c90f5;
+            margin-bottom: 1.5rem;
+        }
+        .docs-section p {
+            font-size: 1rem;
+            color: #d1d5db;
+        }
+        .docs-button {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 500;
+            color: #fff;
+            background-color: #6366f1;
+            border-radius: 0.5rem;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            margin-top: 1.5rem;
+        }
+        .docs-button:hover {
+            background-color: #4f46e5;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3);
+        }
+        .flex-center {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 2rem;
+        }
+        .nav-link.active {
+            font-weight: 600;
+            color: #6366f1;
+        }
+        .nav-link {
+            text-decoration: none;
+        }
+        
+        .nav-wrapper {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        .nav-link.active {
+            font-weight: bold;
+            color: #6366f1;
+            border-bottom: 2px solid #6366f1;
+            padding-bottom: 0.25rem;
+        }
+        .nav-link:hover {
+            color: #93c5fd;
+        }
+        .nav-link-secondary {
+            color: #9ca3af;
+        }
+        .nav-link-secondary:hover {
+            color: #d1d5db;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="landing-page" class="hero active">
+        <div class="hero-text">
+            <div class="text-logo">
+                <span class="yoscript-main"><span class="gradient-yo-in-yoscript">YO</span>Script</span>
+                <span class="your-own-line">Your Own.</span>
+            </div>
+            <h1 class="hero-title">Welcome to YOSIDE</h1>
+            <p class="hero-subtitle">
+                A simple Integrated Development Environment (IDE) for beginners to build and run
+                scripts using YOScript.
+            </p>
+         <img src="assets/images/IDE.png" src="A screenshot of the IDE" width="400">
+        </div>
+        <div class="buttons">
+            <a href="#get-yoide" class="btn btn-primary get-yoide-link">Get YOIDE</a>
+            <a href="docs.html" class="btn btn-secondary">Read the Grimoire</a>
+            <a href="https://github.com/explysm/your-own-script" class="btn btn-secondary">Github</a>
+        </div>
+    </div>
+
+    <div id="get-yoide-page" class="content-container">
+        <div class="wiki-card">
+            <h2 class="wiki-title">YOIDE Grimoire</h2>
+            <div class="nav-wrapper">
+                <a href="#landing" class="nav-link nav-link-secondary home-link active">Home Page</a>
+                <a href="#get-yoide" class="nav-link nav-link-secondary get-yoide-nav-link">Get YOIDE</a>
+                <a href="docs.html" class="nav-link nav-link-secondary">Read Grimoire</a>
+            </div>
+            
+            <h3 style="font-size: 1.5rem; font-weight: 600; color: #93c5fd; margin-top: 2.5rem;">Download the YOIDE</h3>
+            <p style="color: #a3aab8;">
+                Choose your OS to download the latest version of the YOIDE. The grimoire
+                awaits!
+            </p>
+            <ul class="download-links">
+                <li>
+                    <span>Windows (x64)</span>
+                    <a href="https://github.com/explysm/your-own-script/releases/latest/download/YOSIDE-windows-x64.7z" class="download-btn">Download .7z</a>
+                </li>
+                <li>
+                    <span>Linux (x86_64)</span>
+                    <a href="https://github.com/explysm/your-own-script/releases/latest/download/YOSIDE-linux-x86_64.7z" class="download-btn">Download .7z</a>
+                </li>
+                <li>
+                    <span>Android (x64)</span>
+                    <a href="https://github.com/explysm/your-own-script/releases/latest/download/YOSIDE-android.7z" class="download-btn">Download .7z (unzip for .apk)</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const getYoideBtn = document.querySelector('.get-yoide-link');
+            const landingPage = document.getElementById('landing-page');
+            const getYoidePage = document.getElementById('get-yoide-page');
+            const homeLink = document.querySelector('.home-link');
+            const getYoideNavLink = document.querySelector('.get-yoide-nav-link');
+            const navLinks = document.querySelectorAll('.nav-wrapper .nav-link');
+
+            function showPage(pageId) {
+                // Deactivate all pages and links
+                landingPage.style.display = 'none';
+                getYoidePage.style.display = 'none';
+                navLinks.forEach(link => link.classList.remove('active'));
+
+                if (pageId === 'get-yoide') {
+                    getYoidePage.style.display = 'block';
+                    getYoideNavLink.classList.add('active');
+                    homeLink.classList.remove('active'); // Ensure Home Page is not active
+                } else {
+                    landingPage.style.display = 'flex';
+                    homeLink.classList.add('active');
+                    getYoideNavLink.classList.remove('active'); // Ensure Get YOIDE is not active
+                }
+            }
+
+            getYoideBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                showPage('get-yoide');
+                history.pushState(null, '', '#get-yoide');
+            });
+
+            homeLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                showPage('landing');
+                history.pushState(null, '', '#landing');
+            });
+            
+            // Handle initial page load based on URL hash
+            const urlHash = window.location.hash.substring(1);
+            showPage(urlHash || 'landing');
+
+            // Handle browser back/forward buttons
+            window.addEventListener('popstate', () => {
+                const hash = window.location.hash.substring(1);
+                showPage(hash || 'landing');
+            });
+        });
+    </script>
+</body>
+</html>
+
