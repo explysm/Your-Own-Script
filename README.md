@@ -14,7 +14,7 @@ YOS Comes in a 7zip archive that includes:
 **Your Own Script.csproj**<br>
 **obj/**<br>
 
-**Note:** The (Soon to be) Android version will only include the base IDE.
+**Note:** The Android version will only include the base IDE. That means: **no builds**, **no compiles**. Only running, saving, and loading files.
 
 # Dependencies:
 ---
