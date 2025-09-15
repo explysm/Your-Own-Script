@@ -62,7 +62,7 @@ I did use AI for most - since i suck and fell for the AI propaganda.
 
 ---
 
-- [x] Replace the "help" command (since it's really useless) with a "help" button.
+- [x] ~~Replace the "help" command (since it's really useless) with a "help" button.~~ 
 - [ ] Add CodeEdit auto saving (so you don't have to save/load as often) 
 - [ ] Fix nested bugs (Check [issues](https://github.com/explysm/your-own-script/issues) for more info) 
 - [ ] Separate architecture android builds (It would significantly reduce the size to ~30MB) 
