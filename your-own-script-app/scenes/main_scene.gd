@@ -1002,4 +1002,4 @@ func compile_statement(line: String) -> String:
 
 
 func _on_docs_pressed() -> void:
-	OS.shell_open("https://doc.yike.games")
+	OS.shell_open("https://yourown.yike.games/docs.html")
