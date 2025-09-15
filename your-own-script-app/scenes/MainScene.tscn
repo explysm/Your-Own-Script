@@ -1,8 +1,9 @@
-[gd_scene load_steps=4 format=3 uid="uid://cb3y16ungo1gx"]
+[gd_scene load_steps=5 format=3 uid="uid://cb3y16ungo1gx"]
 
 [ext_resource type="Script" uid="uid://y172gi4xwprr" path="res://scenes/main_scene.gd" id="1_echbf"]
 [ext_resource type="Script" uid="uid://dq308ug0rp7vo" path="res://scenes/whats_new.gd" id="2_ibiss"]
 [ext_resource type="Texture2D" uid="uid://b4rwve5pwbpb4" path="res://stvalley.png" id="3_c6dvc"]
+[ext_resource type="Script" uid="uid://b0m64naaev8r1" path="res://scenes/help_2.gd" id="4_611at"]
 
 [node name="MainScene" type="Control"]
 layout_mode = 3
@@ -85,7 +86,6 @@ offset_right = 1126.0
 offset_bottom = 648.0
 
 [node name="LoadButton" type="Button" parent="."]
-visible = false
 layout_mode = 0
 offset_left = 849.0
 offset_top = 473.0
@@ -94,7 +94,6 @@ offset_bottom = 504.0
 text = "Load"
 
 [node name="SaveButton" type="Button" parent="."]
-visible = false
 layout_mode = 0
 offset_left = 802.0
 offset_top = 473.0
@@ -111,7 +110,6 @@ offset_bottom = 504.0
 text = "Run"
 
 [node name="CompileButton" type="Button" parent="."]
-visible = false
 layout_mode = 0
 offset_left = 997.0
 offset_top = 473.0
@@ -120,7 +118,6 @@ offset_bottom = 504.0
 text = "Compile"
 
 [node name="BuildButton" type="Button" parent="."]
-visible = false
 layout_mode = 0
 offset_left = 952.0
 offset_top = 473.0
@@ -129,7 +126,6 @@ offset_bottom = 504.0
 text = "Build"
 
 [node name="BrowseButton" type="Button" parent="."]
-visible = false
 layout_mode = 0
 offset_left = 1060.0
 offset_top = 617.0
@@ -138,7 +134,6 @@ offset_bottom = 645.0
 text = "Browse"
 
 [node name="DotNetPathInput" type="LineEdit" parent="."]
-visible = false
 layout_mode = 0
 offset_left = 804.0
 offset_top = 618.0
@@ -162,7 +157,16 @@ offset_right = 866.0
 offset_bottom = 617.0
 text = "Docs"
 
+[node name="Help" type="Button" parent="."]
+layout_mode = 0
+offset_left = 804.0
+offset_top = 548.0
+offset_right = 866.0
+offset_bottom = 582.0
+text = "Help"
+
 [node name="WhatsNew" type="CanvasLayer" parent="."]
+visible = false
 script = ExtResource("2_ibiss")
 
 [node name="BG" type="ColorRect" parent="WhatsNew"]
@@ -220,5 +224,58 @@ offset_bottom = 454.0
 layout_mode = 2
 text = "Close"
 
+[node name="Help2" type="CanvasLayer" parent="."]
+script = ExtResource("4_611at")
+
+[node name="BG" type="ColorRect" parent="Help2"]
+offset_left = 26.0
+offset_top = 16.0
+offset_right = 408.0
+offset_bottom = 467.0
+color = Color(0, 0, 0, 0.627451)
+
+[node name="Label" type="Label" parent="Help2/BG"]
+layout_mode = 0
+offset_left = 2.0
+offset_top = -3.0
+offset_right = 583.0
+offset_bottom = 569.0
+scale = Vector2(0.65609, 0.782941)
+text = "--- YOScript Help ---
+Blocks are defined by indentation
+
+	print <value>          : Prints a value to the console
+vs <name> = <value>    : Declares a string variable.
+	vi <name> = <value>    : Declares an integer variable.
+	vb <name> = <value>    : Declares a boolean variable.
+	loop:<condition>       : A conditional loop that runs as long as the condition is true.
+	break                  : Exits the current loop.
+	continue               : Skips to the next iteration of the current loop.
+	if:<condition>         : A conditional statement.
+	log_output(\"else if:<condition>    : An alternative conditional statement.
+	log_output(\"else                   : A fallback statement if no preceding conditions are met.
+func:<name>            : Declares a new function.
+call <name>            : Executes a declared function.
+list <name>            : Declares an empty list variable.
+add <list> <value>     : Adds a value to a list.
+get <var> <list> <index>: Gets a value from a list and stores it in <var>.
+\"input:<name>           : Prompts for user input and stores it in 'name'.
+clear                  : Clears the console.
+random <var> <min> <max> : Generates a random integer and stores it in <var>.
+len <var>              : Prints the length of a string variable.
+timer: <msec>          : Pauses execution for a specified number of milliseconds.
+help                   : Displays this help message.
+---"
+
+[node name="Button" type="Button" parent="Help2"]
+offset_left = 338.0
+offset_top = 431.0
+offset_right = 384.0
+offset_bottom = 459.0
+scale = Vector2(1.44439, 1.15754)
+text = "Close"
+
 [connection signal="pressed" from="Docs" to="." method="_on_docs_pressed"]
+[connection signal="pressed" from="Help" to="." method="_on_help_pressed"]
 [connection signal="pressed" from="WhatsNew/VBoxContainer/Button" to="WhatsNew" method="_on_button_pressed"]
+[connection signal="pressed" from="Help2/Button" to="Help2" method="_on_button_pressed"]

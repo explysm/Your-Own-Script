@@ -18,6 +18,7 @@ const MAX_LOOP_ITERATIONS = 100000
 @onready var input_line = $Console_Panel/InputLine
 @onready var dotnet_path_input = $DotNetPathInput
 @onready var browse_button = $BrowseButton
+@onready var help = $Help2
 
 
 # Variable storage
@@ -1003,3 +1004,7 @@ func compile_statement(line: String) -> String:
 
 func _on_docs_pressed() -> void:
 	OS.shell_open("https://yourown.yike.games/docs.html")
+
+
+func _on_help_pressed() -> void:
+	help.visible = true
