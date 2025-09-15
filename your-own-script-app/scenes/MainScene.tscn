@@ -1,6 +1,8 @@
-[gd_scene load_steps=2 format=3 uid="uid://cb3y16ungo1gx"]
+[gd_scene load_steps=4 format=3 uid="uid://cb3y16ungo1gx"]
 
 [ext_resource type="Script" uid="uid://y172gi4xwprr" path="res://scenes/main_scene.gd" id="1_echbf"]
+[ext_resource type="Script" uid="uid://dq308ug0rp7vo" path="res://scenes/whats_new.gd" id="2_ibiss"]
+[ext_resource type="Texture2D" uid="uid://b4rwve5pwbpb4" path="res://stvalley.png" id="3_c6dvc"]
 
 [node name="MainScene" type="Control"]
 layout_mode = 3
@@ -154,4 +156,63 @@ offset_right = 866.0
 offset_bottom = 617.0
 text = "Docs"
 
+[node name="WhatsNew" type="CanvasLayer" parent="."]
+script = ExtResource("2_ibiss")
+
+[node name="BG" type="ColorRect" parent="WhatsNew"]
+offset_left = 358.0
+offset_top = 46.0
+offset_right = 739.0
+offset_bottom = 460.0
+color = Color(0, 0, 0, 0.227451)
+
+[node name="WN" type="Label" parent="WhatsNew"]
+offset_left = 504.0
+offset_top = 51.0
+offset_right = 583.0
+offset_bottom = 71.0
+text = "What's New"
+
+[node name="tmp" type="Label" parent="WhatsNew"]
+offset_left = 384.0
+offset_top = 96.0
+offset_right = 727.0
+offset_bottom = 139.0
+text = "- Docs button now redirects correctly.
+(docs.yike.games -> yourown.yike.games/docs.html)"
+
+[node name="tmp2" type="Label" parent="WhatsNew"]
+offset_left = 385.0
+offset_top = 152.0
+offset_right = 728.0
+offset_bottom = 195.0
+text = "- Added \"What's New\" Menu"
+
+[node name="tmp3" type="Label" parent="WhatsNew"]
+offset_left = 409.0
+offset_top = 181.0
+offset_right = 752.0
+offset_bottom = 224.0
+text = "Fun fact: I was playing Stardew Valley while 
+making this!"
+
+[node name="tmp4" type="TextureRect" parent="WhatsNew"]
+offset_left = 417.0
+offset_top = 230.0
+offset_right = 1783.0
+offset_bottom = 998.0
+scale = Vector2(0.197202, 0.212263)
+texture = ExtResource("3_c6dvc")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="WhatsNew"]
+offset_left = 524.0
+offset_top = 414.0
+offset_right = 564.0
+offset_bottom = 454.0
+
+[node name="Button" type="Button" parent="WhatsNew/VBoxContainer"]
+layout_mode = 2
+text = "Close"
+
 [connection signal="pressed" from="Docs" to="." method="_on_docs_pressed"]
+[connection signal="pressed" from="WhatsNew/VBoxContainer/Button" to="WhatsNew" method="_on_button_pressed"]
