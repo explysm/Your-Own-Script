@@ -85,6 +85,7 @@ offset_right = 1126.0
 offset_bottom = 648.0
 
 [node name="LoadButton" type="Button" parent="."]
+visible = false
 layout_mode = 0
 offset_left = 849.0
 offset_top = 473.0
@@ -93,6 +94,7 @@ offset_bottom = 504.0
 text = "Load"
 
 [node name="SaveButton" type="Button" parent="."]
+visible = false
 layout_mode = 0
 offset_left = 802.0
 offset_top = 473.0
@@ -109,6 +111,7 @@ offset_bottom = 504.0
 text = "Run"
 
 [node name="CompileButton" type="Button" parent="."]
+visible = false
 layout_mode = 0
 offset_left = 997.0
 offset_top = 473.0
@@ -117,6 +120,7 @@ offset_bottom = 504.0
 text = "Compile"
 
 [node name="BuildButton" type="Button" parent="."]
+visible = false
 layout_mode = 0
 offset_left = 952.0
 offset_top = 473.0
@@ -125,6 +129,7 @@ offset_bottom = 504.0
 text = "Build"
 
 [node name="BrowseButton" type="Button" parent="."]
+visible = false
 layout_mode = 0
 offset_left = 1060.0
 offset_top = 617.0
@@ -133,6 +138,7 @@ offset_bottom = 645.0
 text = "Browse"
 
 [node name="DotNetPathInput" type="LineEdit" parent="."]
+visible = false
 layout_mode = 0
 offset_left = 804.0
 offset_top = 618.0
