@@ -17,7 +17,7 @@ IDE and C# compiler for YOScript, the **easiest** language you can learn.
 >
 >**[Linux: x86_64](https://github.com/explysm/your-own-script/releases/latest/download/YOSIDE-linux-x86_64.7z)**
 >
->**[Android: x64](https://github.com/explysm/your-own-script/releases/latest/download/YOSIDE-android.7z)** (Fun fact: compressing the apk only reduces the file size to about 3MB less!)
+>**[Android: x86 64 - x86 - arm64-v8a - armeabi-v7a](https://github.com/explysm/your-own-script/releases/latest/download/YOSIDE-android.7z)** (Fun fact: compressing the apk only reduces the file size to about 3MB less!)
 >
 >**Web: browser** (Soon)
 
