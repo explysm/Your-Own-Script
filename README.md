@@ -46,3 +46,5 @@ I did use AI for most - since i suck and fell for the AI propaganda.
 > [!IMPORTANT]
 >
 > **To save and load .yo files on android, go to settings, search for "Your Own", click "Permissions" and toggle on "Storage".**
+>
+> Please check [issues](https://github.com/explysm/your-own-script/issues) every new update so you know what bugs have been found, and what bugs have been fixed.
