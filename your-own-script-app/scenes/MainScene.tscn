@@ -166,7 +166,6 @@ offset_bottom = 582.0
 text = "Help"
 
 [node name="WhatsNew" type="CanvasLayer" parent="."]
-visible = false
 script = ExtResource("2_ibiss")
 
 [node name="BG" type="ColorRect" parent="WhatsNew"]
@@ -196,21 +195,22 @@ offset_left = 385.0
 offset_top = 152.0
 offset_right = 728.0
 offset_bottom = 195.0
-text = "- Added \"What's New\" Menu"
+text = "- Added \"What's New\" Menu
+-Added Help menu"
 
 [node name="tmp3" type="Label" parent="WhatsNew"]
-offset_left = 409.0
-offset_top = 181.0
-offset_right = 752.0
-offset_bottom = 224.0
+offset_left = 408.0
+offset_top = 202.0
+offset_right = 751.0
+offset_bottom = 245.0
 text = "Fun fact: I was playing Stardew Valley while 
 making this!"
 
 [node name="tmp4" type="TextureRect" parent="WhatsNew"]
-offset_left = 417.0
-offset_top = 230.0
-offset_right = 1783.0
-offset_bottom = 998.0
+offset_left = 414.0
+offset_top = 250.0
+offset_right = 1780.0
+offset_bottom = 1018.0
 scale = Vector2(0.197202, 0.212263)
 texture = ExtResource("3_c6dvc")
 
