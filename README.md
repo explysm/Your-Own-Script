@@ -8,7 +8,7 @@
 >
 > #### Due to the limitations of the Godot game engine, i have decided to archive the project and focus on other things. 
 >
-> #### You are welcome to [clone this repo](# Development) and try to fix any interpreter bugs.
+> #### You are welcome to clone this repo and try to fix any interpreter bugs.
 >
 > **The website will still be up**.
 
