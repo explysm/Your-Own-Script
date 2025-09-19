@@ -1,5 +1,17 @@
 # YourOwnScript
 
+# IMPORTANT NOTE:
+
+> [!WARNING]
+>
+> ## This repo will be archived as of: September 19th.
+>
+> #### Due to the limitations of the Godot game engine, i have decided to archive the project and focus on other things. 
+>
+> #### You are welcome to [clone this repo](# Development) and try to fix any interpreter bugs.
+>
+> **The website will still be up**.
+
 https://yourown.yike.games
 
 ![YOScript. Your Own](images/YourOwn.png)
@@ -41,6 +53,8 @@ YOS Comes in a 7zip archive that includes:
 # Development
 ---
 At least Godot 4.3x
+
+Latest export templates for your Godot version.
 
 
 

@@ -13,9 +13,13 @@ config_version=5
 config/name="Your Own"
 config/description="An IDE for YOS."
 run/main_scene="uid://cb3y16ungo1gx"
-config/features=PackedStringArray("4.4", "GL Compatibility")
+config/features=PackedStringArray("4.5", "GL Compatibility")
 boot_splash/image="uid://bq1a0qaqx4d1i"
 config/icon="uid://bq1a0qaqx4d1i"
+
+[autoload]
+
+al="*res://scenes/AL.gd"
 
 [display]
 
@@ -24,9 +28,9 @@ window/stretch/aspect="ignore"
 
 [gui]
 
-theme/custom_font="uid://bhkagvud1gyy2"
 theme/default_font_antialiasing=2
 theme/default_font_multichannel_signed_distance_field=true
+theme/custom_font="uid://bhkagvud1gyy2"
 
 [rendering]
 
